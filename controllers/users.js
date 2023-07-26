@@ -11,7 +11,7 @@ function createUser(req, res) {
 
   User
     .create({ name, about, avatar })
-    .then((user) => res.send({ data: user }))
+    .then((user) => res.status(201).send({ data: user }))
     .catch((err) => (
       err.name === 'ValidationError'
         ? res.status(ERROR_INACCURATE_DATA).send({ message: 'Переданы некорректные данные при создании пользователя' })
@@ -31,16 +31,17 @@ function getUserInfo(req, res) {
 
   User
     .findById(id)
-    .then((user) => {
-      if (user) return res.send({ data: user });
-
-      return res.status(ERROR_NOT_FOUND).send({ message: 'Пользователь по указанному id не найден' });
-    })
-    .catch((err) => (
-      err.name === 'CastError'
-        ? res.status(ERROR_INACCURATE_DATA).send({ message: 'Передан некорректный id' })
-        : res.status(ERROR_INTERNAL_SERVER).send({ message: 'На сервере произошла ошибка' })
-    ));
+    .orFail(new Error('Not Found'))
+    .then((user) => res.send({ data: user }))
+    .catch((err) => {
+      if (err.message === 'Not Found') {
+        return res.status(ERROR_NOT_FOUND).send({ message: 'Пользователь по указанному id не найден' });
+      }
+      if (err.name === 'CastError') {
+        return res.status(ERROR_INACCURATE_DATA).send({ message: 'Передан некорректный id' });
+      }
+      return res.status(ERROR_INTERNAL_SERVER).send({ message: 'На сервере произошла ошибка' });
+    });
 }
 
 function setUserInfo(req, res) {
@@ -60,20 +61,18 @@ function setUserInfo(req, res) {
         upsert: false,
       },
     )
-    .then((user) => {
-      if (user) return res.send({ data: user });
-
-      return res.status(ERROR_NOT_FOUND).send({ message: 'Пользователь по указанному id не найден' });
-    })
+    .orFail(new Error('Not Found'))
+    .then((user) => res.send({ data: user }))
     .catch((err) => {
+      if (err.message === 'Not Found') {
+        return res.status(ERROR_NOT_FOUND).send({ message: 'Пользователь по указанному id не найден' });
+      }
       if (err.name === 'ValidationError') {
         return res.status(ERROR_INACCURATE_DATA).send({ message: 'Переданы некорректные данные при обновлении профиля' });
       }
-
       if (err.name === 'CastError') {
         return res.status(ERROR_NOT_FOUND).send({ message: 'Пользователь с указанным id не найден' });
       }
-
       return res.status(ERROR_INTERNAL_SERVER).send({ message: 'На сервере произошла ошибка' });
     });
 }
@@ -94,20 +93,18 @@ function setUserAvatar(req, res) {
         upsert: false,
       },
     )
-    .then((user) => {
-      if (user) return res.send({ data: user });
-
-      return res.status(ERROR_NOT_FOUND).send({ message: 'Пользователь по указанному id не найден' });
-    })
+    .orFail(new Error('Not Found'))
+    .then((user) => res.send({ data: user }))
     .catch((err) => {
+      if (err.message === 'Not Found') {
+        return res.status(ERROR_NOT_FOUND).send({ message: 'Пользователь по указанному id не найден' });
+      }
       if (err.name === 'ValidationError') {
         return res.status(ERROR_INACCURATE_DATA).send({ message: 'Переданы некорректные данные при обновлении аватара' });
       }
-
       if (err.name === 'CastError') {
         return res.status(ERROR_NOT_FOUND).send({ message: 'Пользователь с указанным id не найден' });
       }
-
       return res.status(ERROR_INTERNAL_SERVER).send({ message: 'На сервере произошла ошибка' });
     });
 }

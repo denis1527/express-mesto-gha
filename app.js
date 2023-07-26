@@ -1,5 +1,7 @@
 /* eslint-disable import/no-extraneous-dependencies */
 const express = require('express');
+// eslint-disable-next-line import/no-unresolved
+const helmet = require('helmet');
 const mongoose = require('mongoose');
 const bodyParser = require('body-parser');
 
@@ -8,14 +10,14 @@ const routeCards = require('./routes/cards');
 
 const { ERROR_NOT_FOUND } = require('./errors/errors');
 
-const URL = 'mongodb://localhost:27017/mestodb';
-const { PORT = 3000 } = process.env;
+const { PORT = 3000, URL = 'mongodb://127.0.0.1:27017/mestodb' } = process.env;
 
 mongoose.set('strictQuery', true);
 mongoose.connect(URL);
 
 const app = express();
 
+app.use(helmet());
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
 
