@@ -44,17 +44,13 @@ function loginUser(req, res, next) {
   User
     .findUserByCredentials(email, password)
     .then(({ _id: userId }) => {
-      if (userId) {
-        const token = jwt.sign(
-          { userId },
-          secretSigningKey,
-          { expiresIn: '7d' },
-        );
+      const token = jwt.sign(
+        { userId },
+        secretSigningKey,
+        { expiresIn: '7d' },
+      );
 
-        return res.status(200).send({ _id: token });
-      }
-
-      throw new UnauthorizedError('Неправильные почта или пароль');
+      return res.status(200).send({ _id: token });
     })
     .catch(next);
 }

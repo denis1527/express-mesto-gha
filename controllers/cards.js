@@ -1,5 +1,4 @@
 const Card = require('../models/card');
-
 const ForbiddenError = require('../errors/Forbidden');
 const NotFoundError = require('../errors/NotFound');
 
@@ -79,7 +78,7 @@ function deleteCard(req, res, next) {
       const { owner: cardOwnerId } = card;
       if (cardOwnerId.valueOf() !== userId) throw new ForbiddenError('Нет прав доступа');
 
-      return Card.findByIdAndRemove(cardId);
+      return card.deleteOne();
     })
     .then((card) => res.status(200).send({ data: card }))
     .catch(next);
@@ -87,10 +86,8 @@ function deleteCard(req, res, next) {
 
 module.exports = {
   createCard,
-
   receiveCards,
   likeCard,
   dislikeCard,
-
   deleteCard,
 };
