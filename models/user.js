@@ -1,6 +1,7 @@
 const mongoose = require('mongoose');
 const bcrypt = require('bcrypt');
 const validator = require('validator');
+const UnauthorizedError = require('./errors/Unauthorized');
 
 const { Schema } = mongoose;
 
@@ -38,7 +39,8 @@ const userSchema = new Schema(
 
     avatar: {
       type: String,
-      default: 'https://pictures.s3.yandex.net/resources/jacques-cousteau_1604399756.png',
+      default:
+        'https://pictures.s3.yandex.net/resources/jacques-cousteau_1604399756.png',
       validate: {
         validator: (url) => validator.isURL(url),
         message: 'Требуется ввести URL',
@@ -50,24 +52,22 @@ const userSchema = new Schema(
     versionKey: false,
     statics: {
       findUserByCredentials(email, password) {
-        return this
-          .findOne({ email })
+        return this.findOne({ email })
           .select('+password')
           .then((user) => {
             if (user) {
-              return bcrypt.compare(password, user.password)
-                .then((matched) => {
-                  if (matched) return user;
+              return bcrypt.compare(password, user.password).then((matched) => {
+                if (matched) return user;
 
-                  throw new Error('Неправильные почта или пароль');
-                });
+                throw new UnauthorizedError('Неправильные почта или пароль');
+              });
             }
 
-            throw new Error('Неправильные почта или пароль');
+            throw new UnauthorizedError('Неправильные почта или пароль');
           });
       },
     },
-  },
+  }
 );
 
 module.exports = mongoose.model('user', userSchema);

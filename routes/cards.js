@@ -1,41 +1,44 @@
-const router = require('express').Router();
-const { celebrate, Joi } = require('celebrate');
+const router = require('express').Router(); 
+const { celebrate, Joi } = require('celebrate'); 
 
-const {
-  createCard,
+const { 
+  createCard, 
+  receiveCards, 
+  likeCard, 
+  dislikeCard, 
+  deleteCard, 
+} = require('../controllers/cards'); 
 
-  receiveCards,
-  likeCard,
-  dislikeCard,
+router.post('/', celebrate({ 
+  body: Joi.object().keys({ 
+    name: Joi.string().required().min(2).max(30), 
+    link: Joi.string().required().uri({scheme: ['http', 'https']}), 
+    // Use a custom validator for hexadecimals
+    cardId: Joi.string().length(24).hex(),
+  }), 
+}), createCard); 
 
-  deleteCard,
-} = require('../controllers/cards');
+router.get('/', receiveCards); 
 
-router.post('/', celebrate({
-  body: Joi.object().keys({
-    name: Joi.string().required().min(2).max(30),
-    link: Joi.string().required().uri(),
-  }),
-}), createCard);
+router.put('/:cardId/likes', celebrate({ 
+  params: Joi.object().keys({ 
+    // Use a custom validator for hexadecimals
+    cardId: Joi.string().length(24).hex(),
+  }), 
+}), likeCard); 
 
-router.get('/', receiveCards);
+router.delete('/:cardId/likes', celebrate({ 
+  params: Joi.object().keys({ 
+    // Use a custom validator for hexadecimals
+    cardId: Joi.string().length(24).hex(),
+  }), 
+}), dislikeCard); 
 
-router.put('/:cardId/likes', celebrate({
-  params: Joi.object().keys({
-    cardId: Joi.string().min(24).max(24),
-  }),
-}), likeCard);
+router.delete('/:id', celebrate({ 
+  params: Joi.object().keys({ 
+    // Use a custom validator for hexadecimals
+    id: Joi.string().length(24).hex(),
+  }), 
+}), deleteCard); 
 
-router.delete('/:cardId/likes', celebrate({
-  params: Joi.object().keys({
-    cardId: Joi.string().min(24).max(24),
-  }),
-}), dislikeCard);
-
-router.delete('/:id', celebrate({
-  params: Joi.object().keys({
-    id: Joi.string().min(24).max(24),
-  }),
-}), deleteCard);
-
-module.exports = router;
+module.exports = router;  
